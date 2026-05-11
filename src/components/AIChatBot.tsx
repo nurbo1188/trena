@@ -34,8 +34,8 @@ export default function AIChatBot({ apiKey, embedded = false }: { apiKey: string
     try {
       const response = await getGeminiResponse('', input, SYSTEM_INSTRUCTION);
       setMessages([...newMessages, { role: 'bot', text: response }]);
-    } catch (e) {
-      setMessages([...newMessages, { role: 'bot', text: 'Қателік орын алды. Кейінірек көріңіз.' }]);
+    } catch (e: any) {
+      setMessages([...newMessages, { role: 'bot', text: `Қателік: ${e.message || 'Кейінірек көріңіз.'}` }]);
     } finally {
       setLoading(false);
     }

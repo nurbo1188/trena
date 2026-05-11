@@ -17,8 +17,6 @@ async function startServer() {
   app.use(express.json());
 
   // Gemini Setup
-  const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
-  
   const SYSTEM_INSTRUCTION = `
 Сен 6-сынып оқушысына арналған интеллектуалды тренажёрдың көмекшісісің. 
 Оқушылар жасы 11-12. Жауаптар тек қазақ тілінде, қысқа, нақты, күнделікті өмірден мысалдармен болсын. 
@@ -31,29 +29,32 @@ async function startServer() {
   app.post("/api/chat", async (req, res) => {
     try {
       const { message, prompt, instruction } = req.body;
-      
-      // Support both styles of input from frontend
       const targetPrompt = message || prompt;
       const targetInstruction = instruction || SYSTEM_INSTRUCTION;
 
-      if (!process.env.GEMINI_API_KEY) {
-        return res.status(500).json({ error: "GEMINI_API_KEY is not set in environment" });
+      const rawKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY || "";
+      const apiKey = rawKey.trim().replace(/^["']|["']$/g, "");
+
+      if (!apiKey) {
+        console.error("DEBUG: GEMINI_API_KEY and GOOGLE_API_KEY are BOTH missing.");
+        return res.status(500).json({ error: "Серверде API кілті орнатылмаған. Баптауларды тексеріңіз (Secrets panel)." });
       }
 
+      console.log(`DEBUG: API Key found. Length: ${apiKey.length}. Starts with: ${apiKey.substring(0, 4)}...`);
+
+      const genAI = new GoogleGenerativeAI(apiKey);
       const model = genAI.getGenerativeModel({ 
         model: "gemini-1.5-flash",
-        systemInstruction: targetInstruction 
+        systemInstruction: {
+          role: "system",
+          parts: [{ text: targetInstruction }]
+        }
       });
-
+      
       const result = await model.generateContent(targetPrompt);
       const text = result.response.text();
 
-      // Return in a structure similar to what the user requested or just the text
-      // To match the user's direct requirement for candidates[0] structure if they want to mock it, 
-      // but usually returning a clean JSON is better. 
-      // However, the user asked to display text from: data.candidates[0].content.parts[0].text
-      // So I will return the raw-like structure to satisfy the frontend expectation they described.
-      
+      // Returning structure for candidates[0].content.parts[0].text to be backward compatible with what the user asked
       res.json({
         candidates: [
           {
@@ -64,8 +65,11 @@ async function startServer() {
         ]
       });
     } catch (error: any) {
-      console.error("Backend Gemini Error:", error);
-      res.status(500).json({ error: error.message });
+      console.error("Backend Proxy Error:", error.message);
+      res.status(500).json({ 
+        error: "AI жауап беру кезінде қате кетті. API кілті дұрыс екеніне көз жеткізіңіз.",
+        message: error.message
+      });
     }
   });
 
