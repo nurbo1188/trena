@@ -32,29 +32,27 @@ async function startServer() {
       const targetPrompt = message || prompt;
       const targetInstruction = instruction || SYSTEM_INSTRUCTION;
 
-      const rawKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY || "";
+      const rawKey = process.env.GEMINI_API_KEYY || process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY || "";
       const apiKey = rawKey.trim().replace(/^["']|["']$/g, "");
 
       if (!apiKey) {
-        console.error("DEBUG: GEMINI_API_KEY and GOOGLE_API_KEY are BOTH missing.");
-        return res.status(500).json({ error: "Серверде API кілті орнатылмаған. Баптауларды тексеріңіз (Secrets panel)." });
+        console.error("DEBUG: No API Key found in process.env (checked GEMINI_API_KEYY, GEMINI_API_KEY, GOOGLE_API_KEY)");
+        return res.status(500).json({ error: "API кілті табылмады. Баптаулардан (Secrets) GEMINI_API_KEYY қосқаныңызға көз жеткізіңіз." });
       }
 
-      console.log(`DEBUG: API Key found. Length: ${apiKey.length}. Starts with: ${apiKey.substring(0, 4)}...`);
+      console.log(`DEBUG: Using API Key (length: ${apiKey.length}, starts with: ${apiKey.substring(0, 4)}...)`);
 
       const genAI = new GoogleGenerativeAI(apiKey);
       const model = genAI.getGenerativeModel({ 
-        model: "gemini-1.5-flash",
-        systemInstruction: {
-          role: "system",
-          parts: [{ text: targetInstruction }]
-        }
+        model: "gemini-1.5-flash-latest",
+        systemInstruction: targetInstruction
       });
       
-      const result = await model.generateContent(targetPrompt);
+      const result = await model.generateContent({
+        contents: [{ role: "user", parts: [{ text: targetPrompt }] }],
+      });
       const text = result.response.text();
 
-      // Returning structure for candidates[0].content.parts[0].text to be backward compatible with what the user asked
       res.json({
         candidates: [
           {
@@ -65,10 +63,10 @@ async function startServer() {
         ]
       });
     } catch (error: any) {
-      console.error("Backend Proxy Error:", error.message);
+      console.error("Gemini Proxy Error:", error.message);
       res.status(500).json({ 
-        error: "AI жауап беру кезінде қате кетті. API кілті дұрыс екеніне көз жеткізіңіз.",
-        message: error.message
+        error: "AI қатесі",
+        message: error.message 
       });
     }
   });

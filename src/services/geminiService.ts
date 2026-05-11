@@ -1,28 +1,30 @@
-// Frontend now calls backend API
+import { GoogleGenAI } from "@google/genai";
+
+// Initialize the client
+// Using the specified key or the default one
+const apiKey = process.env.GEMINI_API_KEYY || process.env.GEMINI_API_KEY || "";
+const ai = new GoogleGenAI({ apiKey });
+
 export async function getGeminiResponse(_apiKey: string, prompt: string, systemInstruction: string) {
   try {
-    const response = await fetch("/api/chat", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        prompt: prompt,
-        instruction: systemInstruction
-      }),
+    // Note: the first parameter _apiKey is kept for compatibility but we prefer the env var
+    const currentApiKey = _apiKey || process.env.GEMINI_API_KEYY || process.env.GEMINI_API_KEY || "";
+    
+    // If the key changed dynamically or we need to recreate the client
+    const client = _apiKey ? new GoogleGenAI({ apiKey: _apiKey }) : ai;
+
+    const response = await client.models.generateContent({
+      model: "gemini-3-flash-preview",
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
+      config: {
+        systemInstruction: systemInstruction,
+      }
     });
 
-    if (!response.ok) {
-      const errData = await response.json();
-      throw new Error(errData.error || "Failed to fetch from API");
-    }
-
-    const data = await response.json();
-    // Supporting the data.candidates[0].content.parts[0].text structure
-    return data.candidates[0].content.parts[0].text;
-  } catch (error) {
-    console.error("API Fetch Error:", error);
-    throw error;
+    return response.text;
+  } catch (error: any) {
+    console.error("Gemini API Error:", error);
+    throw new Error(error.message || "Failed to get AI response");
   }
 }
 
