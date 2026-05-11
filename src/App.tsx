@@ -3,11 +3,6 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-/**
- * @license
- * SPDX-License-Identifier: Apache-2.0
- */
-
 import { useState, useEffect } from 'react';
 import { 
   BookOpen, 
@@ -15,15 +10,12 @@ import {
   Gamepad2, 
   Dumbbell, 
   BarChart3, 
-  Key, 
-  Save,
-  ChevronRight,
-  Info,
   MessageSquare,
-  Code2
+  Code2,
+  Sparkles
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { TheoryTopic, Question, Task, Stats, THEORY_TOPICS, TEST_QUESTIONS } from './constants';
+import { Stats } from './constants';
 import TheorySection from './components/TheorySection';
 import TestSection from './components/TestSection';
 import GamesSection from './components/GamesSection';
@@ -34,8 +26,6 @@ import PythonEditor from './components/PythonEditor';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<'theory' | 'test' | 'games' | 'trainer' | 'chat' | 'editor' | 'stats'>('theory');
-  const [apiKey, setApiKey] = useState<string>('');
-  const [showKeyInput, setShowKeyInput] = useState(false);
   const [stats, setStats] = useState<Stats>({
     testScores: [],
     gamePoints: 0,
@@ -43,9 +33,6 @@ export default function App() {
   });
 
   useEffect(() => {
-    const savedKey = localStorage.getItem('algo_step_api_key');
-    if (savedKey) setApiKey(savedKey);
-
     const savedStats = localStorage.getItem('algo_step_stats');
     if (savedStats) setStats(JSON.parse(savedStats));
   }, []);
@@ -53,11 +40,6 @@ export default function App() {
   const saveStats = (newStats: Stats) => {
     setStats(newStats);
     localStorage.setItem('algo_step_stats', JSON.stringify(newStats));
-  };
-
-  const handleSaveKey = () => {
-    localStorage.setItem('algo_step_api_key', apiKey);
-    setShowKeyInput(false);
   };
 
   const tabs = [
@@ -85,31 +67,9 @@ export default function App() {
           </div>
 
           <div className="flex items-center gap-4">
-            {showKeyInput ? (
-              <div className="flex items-center gap-2 bg-slate-100 p-1 rounded-lg animate-in slide-in-from-right-4 duration-300">
-                <input
-                  type="password"
-                  placeholder="Gemini API Key"
-                  className="bg-transparent border-none outline-none px-2 py-1 text-sm w-32 md:w-64"
-                  value={apiKey}
-                  onChange={(e) => setApiKey(e.target.value)}
-                />
-                <button
-                  onClick={handleSaveKey}
-                  className="bg-blue-600 text-white p-1.5 rounded-md hover:bg-blue-700 transition"
-                >
-                  <Save size={16} />
-                </button>
-              </div>
-            ) : (
-              <button
-                onClick={() => setShowKeyInput(true)}
-                className="flex items-center gap-2 text-slate-500 hover:text-blue-600 transition text-sm font-medium"
-              >
-                <Key size={18} />
-                <span className="hidden md:inline">{apiKey ? 'Кілт сақталды' : 'API кілтті енгізу'}</span>
-              </button>
-            )}
+            <div className="flex items-center gap-2 px-3 py-1 bg-emerald-50 text-emerald-600 rounded-lg text-xs font-black uppercase tracking-widest border border-emerald-100">
+               <Sparkles size={14} /> AI ҚОСУЛЫ
+            </div>
           </div>
         </div>
 
@@ -143,27 +103,27 @@ export default function App() {
             transition={{ duration: 0.2 }}
             className="w-full"
           >
-            {activeTab === 'theory' && <TheorySection apiKey={apiKey} />}
+            {activeTab === 'theory' && <TheorySection apiKey="" />}
             {activeTab === 'test' && (
               <TestSection 
-                apiKey={apiKey}
-                onFinish={(score) => saveStats({ ...stats, testScores: [...stats.testScores.slice(-2), score] })} 
+                apiKey=""
+                onFinish={(score) => saveStats({ ...stats, testScores: [...stats.testScores.slice(-10), score] })} 
               />
             )}
             {activeTab === 'games' && (
               <GamesSection 
-                apiKey={apiKey}
+                apiKey=""
                 onPointsEarned={(points) => saveStats({ ...stats, gamePoints: stats.gamePoints + points })} 
               />
             )}
             {activeTab === 'trainer' && (
               <TrainerSection 
-                apiKey={apiKey}
+                apiKey=""
                 onTaskCompleted={() => saveStats({ ...stats, completedTasks: stats.completedTasks + 1 })}
               />
             )}
             {activeTab === 'editor' && <PythonEditor />}
-            {activeTab === 'chat' && <div className="bg-white rounded-3xl p-8 border border-slate-200 h-[700px] overflow-hidden"><AIChatBot apiKey={apiKey} embedded /></div>}
+            {activeTab === 'chat' && <div className="bg-white rounded-3xl p-8 border border-slate-200 h-[700px] overflow-hidden"><AIChatBot apiKey="" embedded /></div>}
             {activeTab === 'stats' && <StatsSection stats={stats} />}
           </motion.div>
         </AnimatePresence>
@@ -179,7 +139,7 @@ export default function App() {
           </div>
         </div>
       </footer>
-      <AIChatBot apiKey={apiKey} />
+      <AIChatBot apiKey="" />
     </div>
   );
 }

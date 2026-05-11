@@ -148,15 +148,11 @@ function FlowchartGame({ onPointsEarned, apiKey }: { onPointsEarned: (p: number)
   const level = levels[currentLevel];
 
   const getAiHelp = async () => {
-    if (!apiKey) {
-      setAiTip("AI көмегі үшін алдымен API кілтті енгізіңіз.");
-      return;
-    }
     setAiLoading(true);
     try {
       const prompt = `Мен "${level.title}" алгоритмін құрастырып жатырмын. Блоктар: ${level.blocks.map(b => b.text).join(', ')}. 
       Маған келесі қадам қандай болатынына кішкене бағыт бер (тікелей жауап емес, логикалық нұсқау).`;
-      const resp = await getGeminiResponse(apiKey, prompt, SYSTEM_INSTRUCTION);
+      const resp = await getGeminiResponse('', prompt, SYSTEM_INSTRUCTION);
       setAiTip(resp);
     } catch {
       setAiTip("Қателік орын алды.");
@@ -373,14 +369,10 @@ function CodeResultGame({ onPointsEarned, apiKey }: { onPointsEarned: (p: number
   const level = levels[currentIdx];
 
   const getAiHelp = async () => {
-    if (!apiKey) {
-      setAiTip("AI көмегі үшін API кілт қажет.");
-      return;
-    }
     setAiLoading(true);
     try {
       const prompt = `Python коды: ${level.code}. Маған осы кодтың қалай жұмыс істейтіні туралы қысқаша нұсқау бер, бірақ жауапты айтпа.`;
-      const resp = await getGeminiResponse(apiKey, prompt, SYSTEM_INSTRUCTION);
+      const resp = await getGeminiResponse('', prompt, SYSTEM_INSTRUCTION);
       setAiTip(resp);
     } catch {
       setAiTip("Қателік орын алды.");
@@ -534,14 +526,10 @@ function DebugGame({ apiKey, onPointsEarned }: { apiKey: string, onPointsEarned:
   const level = levels[currentIdx];
 
   const getAiHelp = async () => {
-    if (!apiKey) {
-      setAiTip("AI көмегі үшін API кілт қажет.");
-      return;
-    }
     setAiLoading(true);
     try {
       const prompt = `Кодта қате бар: ${level.buggyCode}. Қате түрі: ${level.error}. Маған осыны қалай түзетуге болатыны туралы кішкене көмек бер, бірақ тура жауабын айтпа.`;
-      const resp = await getGeminiResponse(apiKey, prompt, SYSTEM_INSTRUCTION);
+      const resp = await getGeminiResponse('', prompt, SYSTEM_INSTRUCTION);
       setAiTip(resp);
     } catch {
       setAiTip("Қателік орын алды.");

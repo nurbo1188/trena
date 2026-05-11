@@ -1,17 +1,27 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
-
-export async function getGeminiResponse(apiKey: string, prompt: string, systemInstruction: string) {
+// Frontend now calls backend API
+export async function getGeminiResponse(_apiKey: string, prompt: string, systemInstruction: string) {
   try {
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ 
-      model: "gemini-2.0-flash",
-      systemInstruction: systemInstruction 
+    const response = await fetch("/api/chat", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        prompt: prompt,
+        instruction: systemInstruction
+      }),
     });
 
-    const result = await model.generateContent(prompt);
-    return result.response.text();
+    if (!response.ok) {
+      const errData = await response.json();
+      throw new Error(errData.error || "Failed to fetch from API");
+    }
+
+    const data = await response.json();
+    // Supporting the data.candidates[0].content.parts[0].text structure
+    return data.candidates[0].content.parts[0].text;
   } catch (error) {
-    console.error("Gemini API Error:", error);
+    console.error("API Fetch Error:", error);
     throw error;
   }
 }

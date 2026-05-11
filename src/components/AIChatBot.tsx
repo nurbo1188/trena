@@ -25,11 +25,6 @@ export default function AIChatBot({ apiKey, embedded = false }: { apiKey: string
 
   const handleSend = async () => {
     if (!input.trim() || loading) return;
-    if (!apiKey) {
-      setMessages([...messages, { role: 'user', text: input }, { role: 'bot', text: 'Кешіріңіз, ИИ-мен сөйлесу үшін алдымен API кілтін енгізуіңіз қажет (жоғарыдағы батырма арқылы).' }]);
-      setInput('');
-      return;
-    }
 
     const newMessages = [...messages, { role: 'user', text: input }];
     setMessages(newMessages);
@@ -37,10 +32,10 @@ export default function AIChatBot({ apiKey, embedded = false }: { apiKey: string
     setLoading(true);
 
     try {
-      const response = await getGeminiResponse(apiKey, input, SYSTEM_INSTRUCTION);
+      const response = await getGeminiResponse('', input, SYSTEM_INSTRUCTION);
       setMessages([...newMessages, { role: 'bot', text: response }]);
     } catch (e) {
-      setMessages([...newMessages, { role: 'bot', text: 'Қателік орын алды. API кілтін тексеріңіз немесе кейінірек көріңіз.' }]);
+      setMessages([...newMessages, { role: 'bot', text: 'Қателік орын алды. Кейінірек көріңіз.' }]);
     } finally {
       setLoading(false);
     }

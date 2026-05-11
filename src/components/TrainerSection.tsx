@@ -47,13 +47,6 @@ export default function TrainerSection({ apiKey, onTaskCompleted }: Props) {
     setStudentSolution('');
     setShowFeedback(false);
     
-    if (!apiKey) {
-      const filtered = FALLBACK_TASKS.filter(t => t.level === level && t.topic === topic);
-      setTask(filtered[Math.floor(Math.random() * filtered.length)] || FALLBACK_TASKS[0]);
-      setLoading(false);
-      return;
-    }
-
     try {
       // Analyze history for adaptivity
       const recentErrors = history.filter(h => h.result === 'fail').slice(-3);
@@ -67,19 +60,20 @@ export default function TrainerSection({ apiKey, onTaskCompleted }: Props) {
       Маңызды: Пайдаланушы блок-схеманы суреттей алмайды, сондықтан одан блоктардың ретін немесе алгоритмнің мәтіндік түсіндірмесін сұра.
       Формат JSON: { "id": "gen", "level": "${level}", "topic": "${topic}", "goal": "мақсаты", "problem": "есептің мәтіні", "requirements": ["талап 1", "талап 2"], "criteria": "бағалау критерийі" }`;
       
-      const response = await getGeminiResponse(apiKey, prompt, SYSTEM_INSTRUCTION);
+      const response = await getGeminiResponse('', prompt, SYSTEM_INSTRUCTION);
       const jsonMatch = response.match(/\{[\s\S]*\}/);
       if (jsonMatch) setTask(JSON.parse(jsonMatch[0]));
       else throw new Error("JSON not found");
     } catch {
-      setTask(FALLBACK_TASKS[0]);
+      const filtered = FALLBACK_TASKS.filter(t => t.level === level && t.topic === topic);
+      setTask(filtered[Math.floor(Math.random() * filtered.length)] || FALLBACK_TASKS[0]);
     } finally {
       setLoading(false);
     }
   };
 
   const checkSolution = async () => {
-    if (!apiKey || !studentSolution.trim()) return;
+    if (!studentSolution.trim()) return;
     setChatLoading(true);
     try {
       const prompt = `Тапсырма: ${task?.problem}. Оқушының жауабы: ${studentSolution}. 
@@ -88,7 +82,7 @@ export default function TrainerSection({ apiKey, onTaskCompleted }: Props) {
       Егер қате болса, қатесін терең талдап түсіндір, бірақ бірден дұрыс жауапты берме, бағытта.
       Соңында мына форматта қорытынды жаз: RESULT: [SUCCESS немесе FAIL]. FEEDBACK_SUMMARY: [қате туралы қысқаша 1 сөйлем]`;
       
-      const resp = await getGeminiResponse(apiKey, prompt, SYSTEM_INSTRUCTION);
+      const resp = await getGeminiResponse('', prompt, SYSTEM_INSTRUCTION);
       setAiResponse(resp.split('RESULT:')[0]);
       setShowFeedback(true);
 
@@ -109,14 +103,15 @@ export default function TrainerSection({ apiKey, onTaskCompleted }: Props) {
   };
 
   const askAI = async (msg: string) => {
-    if (!apiKey) return setAiResponse("Кешіріңіз, ИИ көмегі үшін API кілті қажет.");
     setChatLoading(true);
     try {
       const prompt = `Контекст: 6-сынып оқушысы. Тапсырма: ${task?.problem}. Оқушының сұрағы: ${msg}. 
       Оған тікелей жауап берме, оны дұрыс бағытқа жетелейтін кеңес бер.`;
-      const resp = await getGeminiResponse(apiKey, prompt, SYSTEM_INSTRUCTION);
+      const resp = await getGeminiResponse('', prompt, SYSTEM_INSTRUCTION);
       setAiResponse(resp);
       setShowFeedback(true);
+    } catch {
+      setAiResponse("Кешіріңіз, ИИ көмегі қазір қолжетімсіз.");
     } finally { setChatLoading(false); }
   };
 

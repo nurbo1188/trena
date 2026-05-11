@@ -30,13 +30,12 @@ export default function TheorySection({ apiKey }: Props) {
   const [loading, setLoading] = useState(false);
 
   const getAiInsight = async (mode: 'simple' | 'analogy') => {
-    if (!apiKey) return;
     setLoading(true);
     try {
       const prompt = mode === 'simple' 
         ? `"${selectedTopic.title}" тақырыбын 6-сынып баласына өте қарапайым тілмен түсіндіріп берші.`
         : `"${selectedTopic.title}" тақырыбына өмірден қызықты аналогия (мысал) келтірші.`;
-      const resp = await getGeminiResponse(apiKey, prompt, SYSTEM_INSTRUCTION);
+      const resp = await getGeminiResponse('', prompt, SYSTEM_INSTRUCTION);
       setAiInsight(resp);
     } catch {
       setAiInsight("Қателік орын алды.");
@@ -123,9 +122,8 @@ export default function TheorySection({ apiKey }: Props) {
                 {selectedTopic.content}
               </p>
 
-              {apiKey && (
-                <div className="mt-8 space-y-4">
-                  <div className="flex gap-3">
+              <div className="mt-8 space-y-4">
+                <div className="flex gap-3">
                     <button 
                       onClick={() => getAiInsight('simple')}
                       disabled={loading}
@@ -157,10 +155,9 @@ export default function TheorySection({ apiKey }: Props) {
                     )}
                   </AnimatePresence>
                 </div>
-              )}
-            </div>
+              </div>
 
-            <div className="mt-12 space-y-8">
+              <div className="mt-12 space-y-8">
               <section className="bg-slate-900 rounded-3xl p-8 shadow-2xl relative overflow-hidden">
                 <div className="absolute top-0 right-0 p-4 opacity-10"><Terminal size={64} className="text-white" /></div>
                 <h3 className="flex items-center gap-2 font-black text-white mb-6 text-lg tracking-wide uppercase">

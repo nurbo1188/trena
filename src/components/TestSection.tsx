@@ -55,11 +55,10 @@ export default function TestSection({ onFinish, apiKey }: Props) {
   };
 
   const askAI = async () => {
-    if (!apiKey) return;
     setAiLoading(true);
     try {
       const prompt = `Сұрақ: ${question.text}. Дұрыс жауап: ${question.options[question.correctAnswer]}. Менің таңдауым: ${question.options[selectedOption!]}. Осы жауаптың неге дұрыс/қате екенін оқушыға (6-сынып) тереңірек түсіндіріп берш.`;
-      const response = await getGeminiResponse(apiKey, prompt, SYSTEM_INSTRUCTION);
+      const response = await getGeminiResponse('', prompt, SYSTEM_INSTRUCTION);
       setAiExplanation(response);
     } catch {
       setAiExplanation("Қателік орын алды.");
@@ -189,7 +188,7 @@ export default function TestSection({ onFinish, apiKey }: Props) {
                   <p className="text-blue-800 font-medium leading-relaxed italic">
                     💡 {question.explanation}
                   </p>
-                  {apiKey && !aiExplanation && (
+                  {!aiExplanation && (
                     <button 
                       onClick={askAI}
                       disabled={aiLoading}
